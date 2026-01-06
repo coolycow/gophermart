@@ -13,6 +13,8 @@ import (
 
 func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logger.Log.Debug("start register handler")
+
 		// Получаем данные пользователя из запроса
 		var req model.UserRegister
 		dec := json.NewDecoder(c.Request.Body)

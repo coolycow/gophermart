@@ -13,9 +13,16 @@ type Config struct {
 	RunAddress           string `env:"RUN_ADDRESS"`
 	DatabaseURI          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
-	SecretKey            string `env:"SECRET_KEY"`
-	LogLevel             string `env:"LOG_LEVEL"`
-	RunMigrations        bool   `env:"RUN_MIGRATIONS"`
+
+	SecretKey     string `env:"SECRET_KEY"`
+	LogLevel      string `env:"LOG_LEVEL"`
+	RunMigrations bool   `env:"RUN_MIGRATIONS"`
+
+	MinPasswordLength int `env:"MIN_PASSWORD_LENGTH"`
+	MaxPasswordLength int `env:"MAX_PASSWORD_LENGTH"`
+
+	MinLoginLength int `env:"MIN_LOGIN_LENGTH"`
+	MaxLoginLength int `env:"MAX_LOGIN_LENGTH"`
 }
 
 // PrintConfig выводит настройки в консоль
@@ -26,6 +33,10 @@ func (c *Config) PrintConfig() {
 	fmt.Printf("Secret Key: %s\n", c.SecretKey)
 	fmt.Printf("Log Level: %s\n", c.LogLevel)
 	fmt.Printf("Run Migrations: %t\n", c.RunMigrations)
+	fmt.Printf("MinPasswordLength: %d\n", c.MinPasswordLength)
+	fmt.Printf("MaxPasswordLength: %d\n", c.MaxPasswordLength)
+	fmt.Printf("MinLoginLength: %d\n", c.MinLoginLength)
+	fmt.Printf("MaxLoginLength: %d\n", c.MaxLoginLength)
 }
 
 // InitConfig возвращает настройки и ошибку если парсинг аргументов не удался
@@ -62,6 +73,30 @@ func InitConfig() (*Config, error) {
 		errs = append(errs, errors.New("secret key is required"))
 	}
 
+	if config.MinPasswordLength < 3 || config.MinPasswordLength > 255 {
+		errs = append(errs, errors.New("min password length must be between 3 and 255"))
+	}
+
+	if config.MaxPasswordLength < 3 || config.MaxPasswordLength > 255 {
+		errs = append(errs, errors.New("max password length must be between 3 and 255"))
+	}
+
+	if config.MaxPasswordLength < config.MinPasswordLength {
+		errs = append(errs, errors.New("max password length must be greater or equal to min password length"))
+	}
+
+	if config.MinLoginLength < 3 || config.MinLoginLength > 255 {
+		errs = append(errs, errors.New("min login length must be between 3 and 255"))
+	}
+
+	if config.MaxLoginLength < 3 || config.MaxLoginLength > 255 {
+		errs = append(errs, errors.New("max login length must be between 3 and 255"))
+	}
+
+	if config.MaxLoginLength < config.MinLoginLength {
+		errs = append(errs, errors.New("max login length must be greater or equal to min password length"))
+	}
+
 	return config, errors.Join(errs...)
 }
 
@@ -91,6 +126,26 @@ func initConfigWithEnv(config *Config) (*Config, error) {
 		config.RunMigrations, _ = strconv.ParseBool(runMigrations)
 	}
 
+	if err := parseIntFromEnv(config, "MIN_PASSWORD_LENGTH",
+		func(c *Config, v int) { c.MinPasswordLength = v }); err != nil {
+		return nil, err
+	}
+
+	if err := parseIntFromEnv(config, "MAX_PASSWORD_LENGTH",
+		func(c *Config, v int) { c.MaxPasswordLength = v }); err != nil {
+		return nil, err
+	}
+
+	if err := parseIntFromEnv(config, "MIN_LOGIN_LENGTH",
+		func(c *Config, v int) { c.MinLoginLength = v }); err != nil {
+		return nil, err
+	}
+
+	if err := parseIntFromEnv(config, "MAX_LOGIN_LENGTH",
+		func(c *Config, v int) { c.MaxLoginLength = v }); err != nil {
+		return nil, err
+	}
+
 	return config, nil
 }
 
@@ -108,6 +163,12 @@ func InitConfigWithArgs(args []string) (*Config, error) {
 	flagSet.StringVarP(&config.SecretKey, "secret-key", "s", getDefaultSecretKey(), "secret key")
 	flagSet.BoolVarP(&config.RunMigrations, "run-migrations", "m", getDefaultRunMigrations(), "run migrations")
 
+	flagSet.IntVarP(&config.MinPasswordLength, "min-password-length", "o", getDefaultMinPasswordLength(), "min password length")
+	flagSet.IntVarP(&config.MaxPasswordLength, "max-password-length", "p", getDefaultMaxPasswordLength(), "max password length")
+
+	flagSet.IntVarP(&config.MinLoginLength, "min-login-length", "q", getDefaultMinLoginLength(), "min login length")
+	flagSet.IntVarP(&config.MaxLoginLength, "max-login-length", "t", getDefaultMaxLoginLength(), "max login length")
+
 	err := flagSet.Parse(args)
 
 	if err != nil {
@@ -116,6 +177,18 @@ func InitConfigWithArgs(args []string) (*Config, error) {
 
 	// Возвращаем адрес переменной config
 	return &config, nil
+}
+
+// parseIntFromEnv парсит int-значение из переменной окружения и устанавливает его в поле конфигурации
+func parseIntFromEnv(config *Config, envKey string, setter func(*Config, int)) error {
+	if value, present := os.LookupEnv(envKey); present {
+		intValue, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("invalid env %s %s", envKey, value)
+		}
+		setter(config, intValue)
+	}
+	return nil
 }
 
 // getDefaultRunAddress Стандартные настройки подключения к БД
@@ -146,4 +219,24 @@ func getDefaultLogLevel() string {
 // getDefaultRunMigrations запуск миграций по умолчанию
 func getDefaultRunMigrations() bool {
 	return false
+}
+
+// getDefaultMinPasswordLength минимальная длина пароля
+func getDefaultMinPasswordLength() int {
+	return 3
+}
+
+// getDefaultMaxPasswordLength максимальная длина пароля
+func getDefaultMaxPasswordLength() int {
+	return 255
+}
+
+// getDefaultMinLoginLength минимальная длина логина
+func getDefaultMinLoginLength() int {
+	return 3
+}
+
+// getDefaultMaxLoginLength максимальная длина логина
+func getDefaultMaxLoginLength() int {
+	return 255
 }

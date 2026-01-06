@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/coolycow/gophermart/internal/logger"
@@ -15,7 +17,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-// PostgresRepository представляет репозиторий для хранения URL
+// PostgresRepository представляет репозиторий для хранения
 type PostgresRepository struct {
 	db *sql.DB
 }
@@ -41,12 +43,31 @@ func (r *PostgresRepository) RunMigrations() error {
 		return err
 	}
 
+	// Получаем абсолютный путь к директории с миграциями
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	// Ищем корень проекта (где находится go.mod)
+	projectRoot := wd
+	for {
+		if _, err := os.Stat(filepath.Join(projectRoot, "go.mod")); err == nil {
+			break
+		}
+
+		parent := filepath.Dir(projectRoot)
+		if parent == projectRoot {
+			return fmt.Errorf("project root not found")
+		}
+		projectRoot = parent
+	}
+
+	migrationsPath := filepath.Join(projectRoot, "migrations")
+	migrationsURL := "file://" + filepath.ToSlash(migrationsPath)
+
 	// Указываем путь к директории с миграциями
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		"pgx",
-		driver,
-	)
+	m, err := migrate.NewWithDatabaseInstance(migrationsURL, "pgx", driver)
 	if err != nil {
 		return err
 	}
@@ -59,7 +80,7 @@ func (r *PostgresRepository) RunMigrations() error {
 	return nil
 }
 
-// NewPostgresRepository создает новый экземпляр URLRepository
+// NewPostgresRepository создает новый экземпляр Repository
 func NewPostgresRepository(DSN string) (*PostgresRepository, error) {
 	db, err := sql.Open("pgx", DSN)
 	if err != nil {
@@ -76,8 +97,8 @@ func NewPostgresRepository(DSN string) (*PostgresRepository, error) {
 
 	repo := &PostgresRepository{db: db}
 
-	// Проверяем, существует ли таблица urls
-	tableExists, err := repo.checkTableExists("urls")
+	// Проверяем, существует ли таблица users
+	tableExists, err := repo.checkTableExists("users")
 	if err != nil {
 		return nil, err
 	}
@@ -107,23 +128,23 @@ func (r *PostgresRepository) Ping(ctx context.Context) error {
 }
 
 // GetUserByID возвращает пользователя по его ID
-func (r *PostgresRepository) GetUserByID(ctx context.Context, userID int) (model.User, error) {
+func (r *PostgresRepository) GetUserByID(ctx context.Context, userID int) (*model.User, error) {
 	row := r.db.QueryRowContext(ctx, "select id, login, password, created_at, updated_at, deleted_at from users where id = $1", userID)
 
 	var ID int
 	var login, password string
-	var createdAt, updatedAt, deletedAt time.Time
+	var createdAt, updatedAt, deletedAt *time.Time
 	err := row.Scan(&ID, &login, &password, &createdAt, &updatedAt, &deletedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.User{}, nil
+			return nil, nil
 		}
 
-		return model.User{}, err
+		return nil, err
 	}
 
-	return model.User{
+	return &model.User{
 		ID:        ID,
 		Login:     login,
 		Password:  password,
@@ -134,23 +155,23 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, userID int) (model
 }
 
 // GetUserByLogin возвращает пользователя по его ID
-func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (model.User, error) {
+func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
 	row := r.db.QueryRowContext(ctx, "select id, password, created_at, updated_at, deleted_at from users where login = $1", login)
 
 	var ID int
 	var password string
-	var createdAt, updatedAt, deletedAt time.Time
+	var createdAt, updatedAt, deletedAt *time.Time
 	err := row.Scan(&ID, &password, &createdAt, &updatedAt, &deletedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.User{}, nil
+			return nil, nil
 		}
 
-		return model.User{}, err
+		return nil, err
 	}
 
-	return model.User{
+	return &model.User{
 		ID:        ID,
 		Login:     login,
 		Password:  password,
@@ -161,20 +182,18 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 }
 
 // CreateUser создание нового пользователя
-func (r *PostgresRepository) CreateUser(ctx context.Context, login string, password string) (model.User, error) {
+func (r *PostgresRepository) CreateUser(ctx context.Context, login string, password string) (*model.User, error) {
 	row := r.db.QueryRowContext(ctx, "INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id, created_at, updated_at", login, password)
 
 	var ID int
-	var createdAt, updatedAt time.Time
+	var createdAt, updatedAt *time.Time
 	err := row.Scan(&ID, &createdAt, &updatedAt)
 
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 
-	fmt.Println("CREATE USER WITH ID = ", ID)
-
-	return model.User{ID: ID, CreatedAt: createdAt, UpdatedAt: updatedAt}, nil
+	return &model.User{ID: ID, Login: login, CreatedAt: createdAt, UpdatedAt: updatedAt}, nil
 }
 
 // DeleteUser удаление пользователя по его ID

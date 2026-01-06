@@ -13,6 +13,8 @@ import (
 
 func LoginHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logger.Log.Debug("start login handler")
+
 		// Получаем данные пользователя из запроса
 		var req model.UserLogin
 		dec := json.NewDecoder(c.Request.Body)
