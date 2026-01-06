@@ -15,6 +15,7 @@ const (
 	UserIDKey ginKey = "userID"
 )
 
+// GetUserIDFromGinContext возвращает ID пользователя
 func GetUserIDFromGinContext(c *gin.Context) (string, error) {
 	value, exists := c.Get(string(UserIDKey))
 
@@ -31,6 +32,7 @@ func GetUserIDFromGinContext(c *gin.Context) (string, error) {
 	return userID, nil
 }
 
+// RequiredAuthMiddleware проверяет наличие авторизационной куки
 func RequiredAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Request.Cookie("auth")

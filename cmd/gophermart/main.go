@@ -38,6 +38,7 @@ func main() {
 
 	logger.Log.Info("Initialized postgres repository", zap.String("dsn", cfg.DatabaseURI))
 
+	// Запускаем миграции если это требуется
 	if cfg.RunMigrations {
 		if err = repo.RunMigrations(); err != nil {
 			log.Fatalf("Failed to run migrations: %v", err)

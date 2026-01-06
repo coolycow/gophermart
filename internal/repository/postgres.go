@@ -12,6 +12,7 @@ import (
 	"github.com/coolycow/gophermart/internal/model"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // PostgresRepository представляет репозиторий для хранения URL

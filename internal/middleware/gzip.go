@@ -12,10 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RequestGzip — middleware-логгер для входящих HTTP-запросов.
+// RequestGzip — middleware для распаковки сжатых данных запроса
 func RequestGzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Распаковываем данные.
 		if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
 			logger.Log.Info("request with gzip")
 

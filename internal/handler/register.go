@@ -13,6 +13,7 @@ import (
 
 func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Получаем данные пользователя из запроса
 		var req model.UserRegister
 		dec := json.NewDecoder(c.Request.Body)
 
@@ -22,6 +23,7 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 			return
 		}
 
+		// Создаем нового пользователя
 		user, err := srv.CreateUser(c.Request.Context(), req)
 		if err != nil {
 			logger.Log.Debug("cannot create user", zap.Error(err))
@@ -31,6 +33,7 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 
 		logger.Log.Debug("create user success", zap.Any("user", user))
 
+		// Формируем данные для авторизационной куки
 		cookieValue, err := srv.GetCookieValueByUser(user)
 
 		if err != nil {
@@ -41,11 +44,13 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 
 		logger.Log.Debug("create cookie success", zap.Any("cookieValue", cookieValue))
 
+		// Устанавливаем куку
 		http.SetCookie(c.Writer, &http.Cookie{
 			Name:     "auth",
 			Value:    cookieValue,
 			Path:     "/",
 			HttpOnly: true,
+			MaxAge:   86400,
 		})
 
 		c.Status(http.StatusOK)

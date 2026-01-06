@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ContentTypeJSON проверяем, что тип контента - application/json
 func ContentTypeJSON() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Проверяем, что тип контента - application/json
 		contentType := c.GetHeader("Content-Type")
 		if !strings.HasPrefix(contentType, "application/json") {
 			logger.Log.Debug("content type is not application/json")

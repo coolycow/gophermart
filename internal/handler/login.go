@@ -13,6 +13,7 @@ import (
 
 func LoginHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Получаем данные пользователя из запроса
 		var req model.UserLogin
 		dec := json.NewDecoder(c.Request.Body)
 
@@ -22,6 +23,7 @@ func LoginHandler(srv service.UserService) gin.HandlerFunc {
 			return
 		}
 
+		// Находим пользователя по паре логин/пароль
 		user, err := srv.GetUserByLoginAndPassword(c.Request.Context(), req.Login, req.Password)
 
 		if err != nil {
@@ -32,6 +34,7 @@ func LoginHandler(srv service.UserService) gin.HandlerFunc {
 
 		logger.Log.Debug("get user success", zap.Any("user", user))
 
+		// Формируем данные для авторизационной куки
 		cookieValue, err := srv.GetCookieValueByUser(user)
 
 		if err != nil {
@@ -42,11 +45,13 @@ func LoginHandler(srv service.UserService) gin.HandlerFunc {
 
 		logger.Log.Debug("create cookie success", zap.Any("cookieValue", cookieValue))
 
+		// Устанавливаем куку
 		http.SetCookie(c.Writer, &http.Cookie{
 			Name:     "auth",
 			Value:    cookieValue,
 			Path:     "/",
 			HttpOnly: true,
+			MaxAge:   86400,
 		})
 
 		c.Status(http.StatusOK)

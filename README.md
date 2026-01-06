@@ -23,3 +23,18 @@ git fetch template && git checkout template/master .github
 ```
 
 Затем добавьте полученные изменения в свой репозиторий.
+
+# Для запуска тестов с БД
+```
+$env:TEST_DATABASE_DSN="host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable"; go test -v ./...
+```
+
+# Для запуска проекта
+```
+go run .\cmd\gophermart\main.go -a localhost:8080 -d "host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable" -l "info"
+```
+
+# Для запуска миграций
+```
+go run .\cmd\gophermart\main.go -d "host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable" -m
+```
