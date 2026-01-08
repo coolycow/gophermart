@@ -109,10 +109,11 @@ func TestRegisterHandlerIntegration(t *testing.T) {
 
 			assert.Equal(t, tt.wantCode, w.Code)
 
+			result := w.Result()
+			defer result.Body.Close()
+
 			if tt.wantCode == http.StatusOK {
-				// Проверяем наличие куки
-				cookies := w.Result().Cookies()
-				w.Result().Body.Close()
+				cookies := result.Cookies()
 
 				var authCookie *http.Cookie
 				for _, c := range cookies {
