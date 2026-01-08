@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/coolycow/gophermart/internal/logger"
@@ -22,8 +21,6 @@ func GetOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
-
-		fmt.Println("UserID: ", userID)
 
 		// Получаем заказы пользователя
 		orders, err := orderService.GetOrdersByUserID(c.Request.Context(), userID)
