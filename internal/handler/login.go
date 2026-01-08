@@ -13,14 +13,14 @@ import (
 
 func LoginHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger.Log.Debug("start login handler")
+		logger.Log.Debug("Start login handler")
 
 		// Получаем данные пользователя из запроса
 		var req model.UserLogin
 		dec := json.NewDecoder(c.Request.Body)
 
 		if err := dec.Decode(&req); err != nil {
-			logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
+			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
@@ -29,23 +29,23 @@ func LoginHandler(srv service.UserService) gin.HandlerFunc {
 		user, err := srv.GetUserByLoginAndPassword(c.Request.Context(), req.Login, req.Password)
 
 		if err != nil {
-			logger.Log.Debug("cannot get user by login", zap.Error(err))
+			logger.Log.Debug("Cannot get user by login", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
 
-		logger.Log.Debug("get user success", zap.Any("user", user))
+		logger.Log.Debug("Get user success", zap.Any("user", user))
 
 		// Формируем данные для авторизационной куки
 		cookieValue, err := srv.GetCookieValueByUser(user)
 
 		if err != nil {
-			logger.Log.Debug("cannot get cookie value", zap.Error(err))
+			logger.Log.Debug("Cannot get cookie value", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
 
-		logger.Log.Debug("create cookie success", zap.Any("cookieValue", cookieValue))
+		logger.Log.Debug("Create cookie success", zap.Any("cookieValue", cookieValue))
 
 		// Устанавливаем куку
 		http.SetCookie(c.Writer, &http.Cookie{

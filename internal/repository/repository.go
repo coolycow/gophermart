@@ -17,4 +17,10 @@ type Repository interface {
 
 	CreateUser(ctx context.Context, login string, password string) (*model.User, error)
 	DeleteUser(ctx context.Context, userID int) error
+
+	GetOrderByNumber(ctx context.Context, orderNumber string) (*model.Order, error)
+	GetOrderByUserIDNumber(ctx context.Context, userID int, orderNumber string) (*model.Order, error)
+	GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error)
+
+	CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, error)
 }

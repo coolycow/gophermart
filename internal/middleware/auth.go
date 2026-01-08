@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 
 	httpError "github.com/coolycow/gophermart/internal/error"
@@ -16,17 +15,23 @@ const (
 )
 
 // GetUserIDFromGinContext возвращает ID пользователя
-func GetUserIDFromGinContext(c *gin.Context) (string, error) {
+func GetUserIDFromGinContext(c *gin.Context) (int, error) {
 	value, exists := c.Get(string(UserIDKey))
 
 	if !exists || value == nil {
-		return "", errors.New("user ID not found in context")
+		return 0, httpError.CustomError{
+			Message:    "user id not found in context",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
-	userID, ok := value.(string)
+	userID, ok := value.(int)
 
 	if !ok {
-		return "", errors.New("incorrect user ID in context")
+		return 0, httpError.CustomError{
+			Message:    "incorrect user id in context",
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
 	return userID, nil
@@ -62,7 +67,7 @@ func RequiredAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 			return
 		}
 
-		if !user.DeletedAt.IsZero() {
+		if user.DeletedAt != nil {
 			_ = c.Error(httpError.CustomError{
 				Message:    "User with this ID has already been deleted",
 				StatusCode: http.StatusUnauthorized,

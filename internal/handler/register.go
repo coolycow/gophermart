@@ -13,14 +13,14 @@ import (
 
 func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger.Log.Debug("start register handler")
+		logger.Log.Debug("Start register handler")
 
 		// Получаем данные пользователя из запроса
 		var req model.UserRegister
 		dec := json.NewDecoder(c.Request.Body)
 
 		if err := dec.Decode(&req); err != nil {
-			logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
+			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
@@ -28,23 +28,23 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 		// Создаем нового пользователя
 		user, err := srv.CreateUser(c.Request.Context(), req)
 		if err != nil {
-			logger.Log.Debug("cannot create user", zap.Error(err))
+			logger.Log.Debug("Cannot create user", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
 
-		logger.Log.Debug("create user success", zap.Any("user", user))
+		logger.Log.Debug("Create user success", zap.Any("user", user))
 
 		// Формируем данные для авторизационной куки
 		cookieValue, err := srv.GetCookieValueByUser(user)
 
 		if err != nil {
-			logger.Log.Debug("cannot get cookie value", zap.Error(err))
+			logger.Log.Debug("Cannot get cookie value", zap.Error(err))
 			_ = c.Error(err)
 			return
 		}
 
-		logger.Log.Debug("create cookie success", zap.Any("cookieValue", cookieValue))
+		logger.Log.Debug("Create cookie success", zap.Any("cookieValue", cookieValue))
 
 		// Устанавливаем куку
 		http.SetCookie(c.Writer, &http.Cookie{

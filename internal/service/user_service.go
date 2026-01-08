@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"net/http"
@@ -198,10 +197,20 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 	// расшифровываем
 	decrypted, err := aesGCM.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return 0, err
+		return 0, httpError.CustomError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
 
-	userID := int(binary.LittleEndian.Uint64(decrypted))
+	userID, err := strconv.Atoi(string(decrypted))
+
+	if err != nil {
+		return 0, httpError.CustomError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
 
 	return userID, nil
 }

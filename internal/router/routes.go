@@ -15,22 +15,23 @@ func setupURLRoutes(
 	repo repository.Repository,
 ) {
 	userService := service.NewUserService(cfg, repo)
+	orderService := service.NewOrderService(cfg, repo)
 
-	// Регистрация пользователя
+	// Регистрация пользователя (JSON)
 	r.POST("/api/user/register", middleware.ContentTypeJSON(), handler.RegisterHandler(userService))
 
-	// Аутентификация пользователя
+	// Аутентификация пользователя (JSON)
 	r.POST("/api/user/login", middleware.ContentTypeJSON(), handler.LoginHandler(userService))
 
 	// Группа маршрутов с обязательной аутентификацией
 	authGroup := r.Group("/")
 	authGroup.Use(middleware.RequiredAuthMiddleware(userService))
 
-	// Загрузка номера заказа
-	authGroup.POST("/api/user/orders", handler.PostOrdersHandler())
+	// Загрузка номера заказа (TEXT/PLAIN)
+	authGroup.POST("/api/user/orders", middleware.ContentTextPlainJSON(), handler.PostOrdersHandler(orderService))
 
 	// Получение списка загруженных номеров заказов
-	authGroup.GET("/api/user/orders", handler.GetOrdersHandler())
+	authGroup.GET("/api/user/orders", handler.GetOrdersHandler(orderService))
 
 	// Получение текущего баланса пользователя
 	authGroup.GET("/api/user/balance", handler.GetBalanceHandler())

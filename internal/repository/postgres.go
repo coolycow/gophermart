@@ -206,3 +206,117 @@ func (r *PostgresRepository) DeleteUser(ctx context.Context, userID int) error {
 
 	return nil
 }
+
+// GetOrderByNumber возвращает заказ по его номеру
+func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber string) (*model.Order, error) {
+	row := r.db.QueryRowContext(ctx, "select id, user_id, status, created_at, updated_at from orders where number = $1", orderNumber)
+
+	var ID, userId int
+	var status string
+	var createdAt, updatedAt *time.Time
+	err := row.Scan(&ID, &userId, &status, &createdAt, &updatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &model.Order{
+		ID:        ID,
+		UserID:    userId,
+		Number:    orderNumber,
+		Status:    status,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+	}, nil
+}
+
+// GetOrderByUserIDNumber возвращает заказ по пользователю и номеру заказа
+func (r *PostgresRepository) GetOrderByUserIDNumber(ctx context.Context, userID int, orderNumber string) (*model.Order, error) {
+	row := r.db.QueryRowContext(ctx, "select id, created_at, status, updated_at from orders where user_id = $1 AND number = $2", userID, orderNumber)
+
+	var ID int
+	var status string
+	var createdAt, updatedAt *time.Time
+	err := row.Scan(&ID, &status, &createdAt, &updatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &model.Order{
+		ID:        ID,
+		UserID:    userID,
+		Number:    orderNumber,
+		Status:    status,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+	}, nil
+}
+
+// GetOrdersByUserID возвращает все заказы пользователя по его ID
+func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error) {
+	var result []model.Order
+
+	rows, err := r.db.QueryContext(ctx, "select id, number, status, created_at, updated_at from orders where user_id = $1 ORDER BY created_at DESC", userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var ID int
+		var number, status string
+		var createdAt, updatedAt *time.Time
+		err := rows.Scan(&ID, &number, &status, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, model.Order{
+			ID:        ID,
+			Number:    number,
+			UserID:    userID,
+			Status:    status,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// CreateOrder создание нового заказа с привязкой к пользователю
+func (r *PostgresRepository) CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, error) {
+	row := r.db.QueryRowContext(ctx, "INSERT INTO orders (user_id, number) VALUES ($1, $2) RETURNING id, status, created_at, updated_at", userID, orderNumber)
+
+	var ID int
+	var status string
+	var createdAt, updatedAt *time.Time
+	err := row.Scan(&ID, &status, &createdAt, &updatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Order{
+		ID:        ID,
+		UserID:    userID,
+		Number:    orderNumber,
+		Status:    status,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+	}, nil
+}
