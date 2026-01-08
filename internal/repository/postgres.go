@@ -211,11 +211,11 @@ func (r *PostgresRepository) DeleteUser(ctx context.Context, userID int) error {
 func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber string) (*model.Order, error) {
 	row := r.db.QueryRowContext(ctx, "select id, user_id, status, accrual, created_at, updated_at from orders where number = $1", orderNumber)
 
-	var ID, userId int
+	var ID, userID int
 	var status string
 	var accrual float32
 	var createdAt, updatedAt *time.Time
-	err := row.Scan(&ID, &userId, &status, &accrual, &createdAt, &updatedAt)
+	err := row.Scan(&ID, &userID, &status, &accrual, &createdAt, &updatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -227,7 +227,7 @@ func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber s
 
 	return &model.Order{
 		ID:        ID,
-		UserID:    userId,
+		UserID:    userID,
 		Number:    orderNumber,
 		Status:    status,
 		Accrual:   accrual,
@@ -318,19 +318,19 @@ func (r *PostgresRepository) GetOrdersForUpdate(ctx context.Context) ([]model.Or
 
 	for rows.Next() {
 		var ID int
-		var userId int
+		var userID int
 		var accrual float32
 		var createdAt, updatedAt *time.Time
 		var status, number string
 
-		err = rows.Scan(&ID, &userId, &number, &status, &accrual, &createdAt, &updatedAt)
+		err = rows.Scan(&ID, &userID, &number, &status, &accrual, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		result = append(result, model.Order{
 			ID:        ID,
-			UserID:    userId,
+			UserID:    userID,
 			Number:    number,
 			Status:    status,
 			Accrual:   accrual,

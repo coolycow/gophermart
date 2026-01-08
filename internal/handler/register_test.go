@@ -112,6 +112,8 @@ func TestRegisterHandlerIntegration(t *testing.T) {
 			if tt.wantCode == http.StatusOK {
 				// Проверяем наличие куки
 				cookies := w.Result().Cookies()
+				w.Result().Body.Close()
+
 				var authCookie *http.Cookie
 				for _, c := range cookies {
 					if c.Name == "auth" {

@@ -86,10 +86,7 @@ func PostOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 		order, isNew, err := orderService.CreateOrder(c.Request.Context(), userID, orderNumber)
 		if err != nil {
 			logger.Log.Debug("Error creating new order")
-			_ = c.Error(httpError.CustomError{
-				Message:    err.Error(),
-				StatusCode: http.StatusInternalServerError,
-			})
+			_ = c.Error(err)
 			return
 		}
 

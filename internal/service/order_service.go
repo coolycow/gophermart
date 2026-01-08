@@ -49,12 +49,7 @@ func (s *orderService) ClearOrderNumber(orderNumber string) string {
 
 // IsCorrectOrderNumber - проверка правильности номера заказа по алгоритму Луна
 func (s *orderService) IsCorrectOrderNumber(orderNumber string) bool {
-	err := goluhn.Validate(orderNumber)
-	if err != nil {
-		return false
-	}
-
-	return true
+	return goluhn.Validate(orderNumber) == nil
 }
 
 // GetOrdersByUserID возвращает все заказы пользователя по его ID

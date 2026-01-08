@@ -80,7 +80,7 @@ func TestPostOrdersHandlerIntegration(t *testing.T) {
 		},
 	}
 
-	cookieValue, err := userService.GetCookieValueByUserID(user.ID)
+	cookieValue, _ := userService.GetCookieValueByUserID(user.ID)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

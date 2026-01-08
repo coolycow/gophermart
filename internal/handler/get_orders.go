@@ -32,7 +32,7 @@ func GetOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 			return
 		}
 
-		if orders == nil || len(orders) == 0 {
+		if len(orders) == 0 {
 			logger.Log.Debug("Orders list is empty")
 			c.Status(http.StatusNoContent)
 			return
