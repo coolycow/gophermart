@@ -78,7 +78,6 @@ func TestGetOrdersHandlerIntegration(t *testing.T) {
 			router.GET("/api/user/orders", GetOrdersHandler(orderService))
 
 			request := httptest.NewRequest("GET", "/api/user/orders", nil)
-			request.Header.Set("Content-Type", "text/plain")
 
 			if !tt.withoutCookie {
 				request.AddCookie(&http.Cookie{

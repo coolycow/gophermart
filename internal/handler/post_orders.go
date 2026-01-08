@@ -93,9 +93,10 @@ func PostOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 			return
 		}
 
+		// Если заказ новый, то возвращаем статус 202, если этот заказ уже был у пользователя, то возвращаем статус 200
 		if isNew {
 			logger.Log.Debug("New order " + orderNumber + " created successfully with ID: " + strconv.Itoa(order.ID))
-			c.Status(http.StatusCreated)
+			c.Status(http.StatusAccepted)
 		} else {
 			logger.Log.Debug("Order " + orderNumber + " was created earlier with ID: " + strconv.Itoa(order.ID))
 			c.Status(http.StatusOK)

@@ -60,7 +60,7 @@ func TestPostOrdersHandlerIntegration(t *testing.T) {
 		{
 			name:     "successful add order",
 			number:   "5580 4733 7202 4733",
-			wantCode: http.StatusCreated,
+			wantCode: http.StatusAccepted,
 		},
 		{
 			name:     "duplicate order",
