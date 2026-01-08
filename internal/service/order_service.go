@@ -17,8 +17,11 @@ import (
 type OrderService interface {
 	ClearOrderNumber(orderNumber string) string
 	IsCorrectOrderNumber(orderNumber string) bool
+
 	CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, bool, error)
+
 	GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error)
+	GetOrdersForUpdate(ctx context.Context) ([]model.Order, error)
 
 	UpdateOrderByAccrual(ctx context.Context, accrual model.Accrual) error
 	UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error
@@ -57,6 +60,19 @@ func (s *orderService) IsCorrectOrderNumber(orderNumber string) bool {
 // GetOrdersByUserID возвращает все заказы пользователя по его ID
 func (s *orderService) GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error) {
 	orders, err := s.repo.GetOrdersByUserID(ctx, userID)
+	if err != nil {
+		return nil, httpError.CustomError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	return orders, nil
+}
+
+// GetOrdersForUpdate возвращает все заказы, которые требуют обновления
+func (s *orderService) GetOrdersForUpdate(ctx context.Context) ([]model.Order, error) {
+	orders, err := s.repo.GetOrdersForUpdate(ctx)
 	if err != nil {
 		return nil, httpError.CustomError{
 			Message:    err.Error(),

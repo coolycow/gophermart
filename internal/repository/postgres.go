@@ -276,6 +276,7 @@ func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) 
 	}
 
 	defer rows.Close()
+
 	for rows.Next() {
 		var ID int
 		var accrual float32
@@ -290,6 +291,47 @@ func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) 
 			ID:        ID,
 			Number:    number,
 			UserID:    userID,
+			Status:    status,
+			Accrual:   accrual,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GetOrdersForUpdate получить список заказов, которые требуют обновления
+func (r *PostgresRepository) GetOrdersForUpdate(ctx context.Context) ([]model.Order, error) {
+	var result []model.Order
+	rows, err := r.db.QueryContext(ctx, "select id, user_id, number, status, accrual, created_at, updated_at from orders WHERE status NOT IN ('INVALID', 'PROCESSED')")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var ID int
+		var userId int
+		var accrual float32
+		var createdAt, updatedAt *time.Time
+		var status, number string
+
+		err = rows.Scan(&ID, &userId, &number, &status, &accrual, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, model.Order{
+			ID:        ID,
+			UserID:    userId,
+			Number:    number,
 			Status:    status,
 			Accrual:   accrual,
 			CreatedAt: createdAt,

@@ -21,6 +21,7 @@ type Repository interface {
 	GetOrderByNumber(ctx context.Context, orderNumber string) (*model.Order, error)
 	GetOrderByUserIDNumber(ctx context.Context, userID int, orderNumber string) (*model.Order, error)
 	GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error)
+	GetOrdersForUpdate(ctx context.Context) ([]model.Order, error)
 
 	CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, error)
 	UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error
