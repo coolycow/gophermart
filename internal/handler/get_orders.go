@@ -5,6 +5,7 @@ import (
 
 	"github.com/coolycow/gophermart/internal/logger"
 	"github.com/coolycow/gophermart/internal/middleware"
+	"github.com/coolycow/gophermart/internal/model"
 	"github.com/coolycow/gophermart/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -37,6 +38,12 @@ func GetOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, orders)
+		// Получаем список заказов в нужном формате
+		var ordersList []model.OrderResponse
+		for _, order := range orders {
+			ordersList = append(ordersList, order.ToResponse())
+		}
+
+		c.JSON(http.StatusOK, ordersList)
 	}
 }

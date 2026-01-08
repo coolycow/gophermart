@@ -21,7 +21,7 @@ type UserResponse struct {
 }
 
 // ToResponse конвертирует User в UserResponse
-func (u *User) ToResponse() UserResponse {
+func (u User) ToResponse() UserResponse {
 	return UserResponse{
 		ID:        u.ID,
 		Login:     u.Login,
