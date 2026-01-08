@@ -19,6 +19,9 @@ type OrderService interface {
 	IsCorrectOrderNumber(orderNumber string) bool
 	CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, bool, error)
 	GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error)
+
+	UpdateOrderByAccrual(ctx context.Context, accrual model.Accrual) error
+	UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error
 }
 
 // Реализация сервисного слоя
@@ -95,4 +98,14 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 	}
 
 	return newOrder, true, nil
+}
+
+// UpdateOrderByAccrual обновление статуса заказа и суммы начислений
+func (s *orderService) UpdateOrderByAccrual(ctx context.Context, accrual model.Accrual) error {
+	return s.UpdateOrderStatusAndAccrual(ctx, accrual.Order, accrual.Status, accrual.Accrual)
+}
+
+// UpdateOrderStatusAndAccrual обновление статуса заказа и суммы начислений
+func (s *orderService) UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error {
+	return s.repo.UpdateOrderStatusAndAccrual(ctx, orderNumber, status, accrual)
 }

@@ -209,12 +209,13 @@ func (r *PostgresRepository) DeleteUser(ctx context.Context, userID int) error {
 
 // GetOrderByNumber возвращает заказ по его номеру
 func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber string) (*model.Order, error) {
-	row := r.db.QueryRowContext(ctx, "select id, user_id, status, created_at, updated_at from orders where number = $1", orderNumber)
+	row := r.db.QueryRowContext(ctx, "select id, user_id, status, accrual, created_at, updated_at from orders where number = $1", orderNumber)
 
 	var ID, userId int
 	var status string
+	var accrual float32
 	var createdAt, updatedAt *time.Time
-	err := row.Scan(&ID, &userId, &status, &createdAt, &updatedAt)
+	err := row.Scan(&ID, &userId, &status, &accrual, &createdAt, &updatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -229,6 +230,7 @@ func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber s
 		UserID:    userId,
 		Number:    orderNumber,
 		Status:    status,
+		Accrual:   accrual,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
@@ -236,12 +238,13 @@ func (r *PostgresRepository) GetOrderByNumber(ctx context.Context, orderNumber s
 
 // GetOrderByUserIDNumber возвращает заказ по пользователю и номеру заказа
 func (r *PostgresRepository) GetOrderByUserIDNumber(ctx context.Context, userID int, orderNumber string) (*model.Order, error) {
-	row := r.db.QueryRowContext(ctx, "select id, created_at, status, updated_at from orders where user_id = $1 AND number = $2", userID, orderNumber)
+	row := r.db.QueryRowContext(ctx, "select id, created_at, status, accrual, updated_at from orders where user_id = $1 AND number = $2", userID, orderNumber)
 
 	var ID int
 	var status string
+	var accrual float32
 	var createdAt, updatedAt *time.Time
-	err := row.Scan(&ID, &status, &createdAt, &updatedAt)
+	err := row.Scan(&ID, &status, &accrual, &createdAt, &updatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -256,6 +259,7 @@ func (r *PostgresRepository) GetOrderByUserIDNumber(ctx context.Context, userID 
 		UserID:    userID,
 		Number:    orderNumber,
 		Status:    status,
+		Accrual:   accrual,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
@@ -265,7 +269,7 @@ func (r *PostgresRepository) GetOrderByUserIDNumber(ctx context.Context, userID 
 func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error) {
 	var result []model.Order
 
-	rows, err := r.db.QueryContext(ctx, "select id, number, status, created_at, updated_at from orders where user_id = $1 ORDER BY created_at DESC", userID)
+	rows, err := r.db.QueryContext(ctx, "select id, number, status, accrual, created_at, updated_at from orders where user_id = $1 ORDER BY created_at DESC", userID)
 
 	if err != nil {
 		return nil, err
@@ -274,9 +278,10 @@ func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) 
 	defer rows.Close()
 	for rows.Next() {
 		var ID int
+		var accrual float32
 		var number, status string
 		var createdAt, updatedAt *time.Time
-		err := rows.Scan(&ID, &number, &status, &createdAt, &updatedAt)
+		err := rows.Scan(&ID, &number, &status, &accrual, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -286,6 +291,7 @@ func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) 
 			Number:    number,
 			UserID:    userID,
 			Status:    status,
+			Accrual:   accrual,
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		})
@@ -300,12 +306,13 @@ func (r *PostgresRepository) GetOrdersByUserID(ctx context.Context, userID int) 
 
 // CreateOrder создание нового заказа с привязкой к пользователю
 func (r *PostgresRepository) CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, error) {
-	row := r.db.QueryRowContext(ctx, "INSERT INTO orders (user_id, number) VALUES ($1, $2) RETURNING id, status, created_at, updated_at", userID, orderNumber)
+	row := r.db.QueryRowContext(ctx, "INSERT INTO orders (user_id, number) VALUES ($1, $2) RETURNING id, status, accrual, created_at, updated_at", userID, orderNumber)
 
 	var ID int
 	var status string
+	var accrual float32
 	var createdAt, updatedAt *time.Time
-	err := row.Scan(&ID, &status, &createdAt, &updatedAt)
+	err := row.Scan(&ID, &status, &accrual, &createdAt, &updatedAt)
 
 	if err != nil {
 		return nil, err
@@ -316,7 +323,19 @@ func (r *PostgresRepository) CreateOrder(ctx context.Context, userID int, orderN
 		UserID:    userID,
 		Number:    orderNumber,
 		Status:    status,
+		Accrual:   accrual,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
+}
+
+// UpdateOrderStatusAndAccrual обновление статуса заказа и суммы начислений
+func (r *PostgresRepository) UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE orders SET status = $1, accrual = $2 WHERE number = $3", status, accrual, orderNumber)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
