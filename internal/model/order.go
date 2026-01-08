@@ -19,8 +19,8 @@ type OrderResponse struct {
 	ID        int        `json:"id"`
 	Number    string     `json:"number"`
 	Status    string     `json:"status"`
-	Accrual   float32    `json:"accrual"`
-	CreatedAt *time.Time `json:"created_at"`
+	Accrual   float32    `json:"accrual,omitempty"`
+	CreatedAt *time.Time `json:"uploaded_at"`
 }
 
 // MarshalJSON в данных JSON даты должны выводиться в формате RFC3339
@@ -45,11 +45,18 @@ func (o Order) MarshalJSON() ([]byte, error) {
 
 // ToResponse конвертирует Order в OrderResponse
 func (o Order) ToResponse() OrderResponse {
-	return OrderResponse{
+	response := OrderResponse{
 		ID:        o.ID,
 		Number:    o.Number,
 		Status:    o.Status,
 		Accrual:   o.Accrual,
 		CreatedAt: o.CreatedAt,
 	}
+
+	// Свойство Accrual заполняется только для заказов в статусе PROCESSED
+	if o.Status == "PROCESSED" {
+		response.Accrual = o.Accrual
+	}
+
+	return response
 }

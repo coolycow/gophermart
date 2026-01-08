@@ -67,7 +67,7 @@ func PostOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 			logger.Log.Debug("Order number " + orderNumber + " is not correct")
 			_ = c.Error(httpError.CustomError{
 				Message:    "Invalid order number",
-				StatusCode: http.StatusBadRequest,
+				StatusCode: http.StatusUnprocessableEntity,
 			})
 			return
 		}

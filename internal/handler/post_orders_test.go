@@ -70,7 +70,7 @@ func TestPostOrdersHandlerIntegration(t *testing.T) {
 		{
 			name:     "incorrect order number",
 			number:   "5062 8217 3456 7892",
-			wantCode: http.StatusBadRequest,
+			wantCode: http.StatusUnprocessableEntity,
 		},
 		{
 			name:          "without cookie",
