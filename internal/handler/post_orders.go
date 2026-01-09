@@ -19,7 +19,7 @@ func getTextPlainContent(c *gin.Context) (string, error) {
 	body, err := io.ReadAll(c.Request.Body)
 
 	if err != nil {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		}
@@ -27,7 +27,7 @@ func getTextPlainContent(c *gin.Context) (string, error) {
 
 	// Проверяем, что не пришла пустота
 	if len(body) == 0 {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    "Empty body",
 			StatusCode: http.StatusBadRequest,
 		}
@@ -37,7 +37,7 @@ func getTextPlainContent(c *gin.Context) (string, error) {
 	trimBody := strings.TrimSpace(string(body))
 
 	if trimBody == "" {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    "Empty Content",
 			StatusCode: http.StatusBadRequest,
 		}

@@ -23,7 +23,7 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 
 		if err := dec.Decode(&req); err != nil {
 			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
-			_ = c.Error(httpError.HttpError{
+			_ = c.Error(httpError.HTTPError{
 				Message:    "Cannot decode request JSON body",
 				StatusCode: http.StatusBadRequest,
 			})

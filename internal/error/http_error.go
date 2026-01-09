@@ -1,11 +1,11 @@
 package error
 
-// HttpError represents a custom error type with a status code
-type HttpError struct {
+// HTTPError represents a custom error type with a status code
+type HTTPError struct {
 	Message    string
 	StatusCode int
 }
 
-func (e HttpError) Error() string {
+func (e HTTPError) Error() string {
 	return e.Message
 }

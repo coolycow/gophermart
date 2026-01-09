@@ -80,7 +80,7 @@ func (s *userService) GetUserByLoginAndPassword(ctx context.Context, login strin
 	}
 
 	if user == nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    "user not found",
 			StatusCode: http.StatusUnauthorized,
 		}
@@ -89,7 +89,7 @@ func (s *userService) GetUserByLoginAndPassword(ctx context.Context, login strin
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusUnauthorized,
 		}
@@ -102,7 +102,7 @@ func (s *userService) GetUserByLoginAndPassword(ctx context.Context, login strin
 func (s *userService) CreateUser(ctx context.Context, user model.UserRegister) (*model.User, error) {
 	// Валидация логина
 	if err := s.validator.Var(user.Login, fmt.Sprintf("required,min=%d,max=%d", s.cfg.MinLoginLength, s.cfg.MaxLoginLength)); err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    fmt.Sprintf("login validation failed: %s", err),
 			StatusCode: http.StatusBadRequest,
 		}
@@ -110,7 +110,7 @@ func (s *userService) CreateUser(ctx context.Context, user model.UserRegister) (
 
 	// Валидация пароля
 	if err := s.validator.Var(user.Password, fmt.Sprintf("required,min=%d,max=%d", s.cfg.MinPasswordLength, s.cfg.MaxPasswordLength)); err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    fmt.Sprintf("password validation failed: %s", err),
 			StatusCode: http.StatusBadRequest,
 		}
@@ -119,14 +119,14 @@ func (s *userService) CreateUser(ctx context.Context, user model.UserRegister) (
 	existingUser, err := s.repo.GetUserByLogin(ctx, user.Login)
 
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
 
 	if existingUser != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    "user already exists",
 			StatusCode: http.StatusConflict,
 		}
@@ -135,7 +135,7 @@ func (s *userService) CreateUser(ctx context.Context, user model.UserRegister) (
 	hashedPassword, err := hashPassword(user.Password)
 
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -156,14 +156,14 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 	// Декодируем hex
 	data, err := hex.DecodeString(cookieValue)
 	if err != nil {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
 
 	if len(data) == 0 {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    "invalid cookie",
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -173,7 +173,7 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 
 	aesBlock, err := aes.NewCipher(key[:])
 	if err != nil {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -181,7 +181,7 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 
 	aesGCM, err := cipher.NewGCM(aesBlock)
 	if err != nil {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -197,7 +197,7 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 	// расшифровываем
 	decrypted, err := aesGCM.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -206,7 +206,7 @@ func (s *userService) GetUserIDFromCookie(cookie *http.Cookie) (int, error) {
 	userID, err := strconv.Atoi(string(decrypted))
 
 	if err != nil {
-		return 0, httpError.HttpError{
+		return 0, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -226,7 +226,7 @@ func (s *userService) GetCookieValueByUserID(userID int) (string, error) {
 
 	aesBlock, err := aes.NewCipher(key[:])
 	if err != nil {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -234,7 +234,7 @@ func (s *userService) GetCookieValueByUserID(userID int) (string, error) {
 
 	aesGCM, err := cipher.NewGCM(aesBlock)
 	if err != nil {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -243,7 +243,7 @@ func (s *userService) GetCookieValueByUserID(userID int) (string, error) {
 	// создаём вектор инициализации
 	nonce, err := generateRandom(aesGCM.NonceSize())
 	if err != nil {
-		return "", httpError.HttpError{
+		return "", httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}

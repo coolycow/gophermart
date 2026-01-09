@@ -41,7 +41,7 @@ func (s *accrualService) GetAccrual(ctx context.Context, orderNumber string) (*m
 	req, err := http.NewRequestWithContext(ctx, "GET", s.cfg.AccrualSystemAddress+"/api/orders/"+orderNumber, nil)
 
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -54,13 +54,13 @@ func (s *accrualService) GetAccrual(ctx context.Context, orderNumber string) (*m
 	if err != nil {
 		// Проверяем, не истек ли таймаут контекста
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return nil, httpError.HttpError{
+			return nil, httpError.HTTPError{
 				Message:    "request timeout",
 				StatusCode: http.StatusRequestTimeout,
 			}
 		}
 
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -69,7 +69,7 @@ func (s *accrualService) GetAccrual(ctx context.Context, orderNumber string) (*m
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    http.StatusText(response.StatusCode),
 			StatusCode: http.StatusBadRequest,
 		}
@@ -79,7 +79,7 @@ func (s *accrualService) GetAccrual(ctx context.Context, orderNumber string) (*m
 	err = json.NewDecoder(response.Body).Decode(&accrual)
 
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}

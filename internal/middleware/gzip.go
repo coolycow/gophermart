@@ -22,7 +22,7 @@ func RequestGzip() gin.HandlerFunc {
 			reader, err := gzip.NewReader(bytes.NewReader(compressedData))
 
 			if err != nil {
-				_ = c.Error(error.HttpError{
+				_ = c.Error(error.HTTPError{
 					Message:    "Failed to decompress gzip data",
 					StatusCode: http.StatusBadRequest,
 				})

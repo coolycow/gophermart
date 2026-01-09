@@ -64,7 +64,7 @@ func (s *orderService) IsCorrectOrderNumber(orderNumber string) bool {
 func (s *orderService) GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error) {
 	orders, err := s.repo.GetOrdersByUserID(ctx, userID)
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -77,7 +77,7 @@ func (s *orderService) GetOrdersByUserID(ctx context.Context, userID int) ([]mod
 func (s *orderService) GetOrdersForUpdate(ctx context.Context) ([]model.Order, error) {
 	orders, err := s.repo.GetOrdersForUpdate(ctx)
 	if err != nil {
-		return nil, httpError.HttpError{
+		return nil, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -91,7 +91,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 	clearOrderNumber := s.SanitizeOrderNumber(orderNumber)
 
 	if !s.IsCorrectOrderNumber(clearOrderNumber) {
-		return nil, false, httpError.HttpError{
+		return nil, false, httpError.HTTPError{
 			Message:    "Invalid order number",
 			StatusCode: http.StatusUnprocessableEntity,
 		}
@@ -99,7 +99,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	existedOrder, err := s.repo.GetOrderByNumber(ctx, clearOrderNumber)
 	if err != nil {
-		return nil, false, httpError.HttpError{
+		return nil, false, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -107,7 +107,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	if existedOrder != nil {
 		if existedOrder.UserID != userID {
-			return nil, false, httpError.HttpError{
+			return nil, false, httpError.HTTPError{
 				Message:    "order already exists",
 				StatusCode: http.StatusConflict,
 			}
@@ -117,7 +117,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	newOrder, err := s.repo.CreateOrder(ctx, userID, clearOrderNumber)
 	if err != nil {
-		return nil, false, httpError.HttpError{
+		return nil, false, httpError.HTTPError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}

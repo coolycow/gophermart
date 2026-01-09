@@ -15,7 +15,7 @@ func ContentTextPlainJSON() gin.HandlerFunc {
 		contentType := c.GetHeader("Content-Type")
 		if !strings.HasPrefix(contentType, "text/plain") {
 			logger.Log.Debug("content type is not text/plain")
-			_ = c.Error(error.HttpError{
+			_ = c.Error(error.HTTPError{
 				Message:    "Content type not allowed",
 				StatusCode: http.StatusUnsupportedMediaType,
 			})
