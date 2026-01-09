@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetBalanceHandler текущий баланс пользователя
+// GetBalanceHandler - получение текущего баланса пользователя
 func GetBalanceHandler(srv service.BalanceTransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Log.Debug("Start GetBalanceHandler")

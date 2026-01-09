@@ -41,7 +41,7 @@ func (s *balanceTransactionService) GetBalanceByUserID(ctx context.Context, user
 	balance, err := s.repo.GetBalanceByUserID(ctx, userID)
 
 	if err != nil {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -55,7 +55,7 @@ func (s *balanceTransactionService) GetWithdrawalsByUserID(ctx context.Context, 
 	balanceTransactions, err := s.repo.GetWithdrawalsByUserID(ctx, userID)
 
 	if err != nil {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -70,7 +70,7 @@ func (s *balanceTransactionService) CreateAccrual(ctx context.Context, userID in
 
 	// Проверяем номер заказа на корректность
 	if !s.orderService.IsCorrectOrderNumber(clearOrderNumber) {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    "Invalid order number",
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -79,7 +79,7 @@ func (s *balanceTransactionService) CreateAccrual(ctx context.Context, userID in
 	balance, err := s.repo.CreateAccrual(ctx, userID, clearOrderNumber, amount)
 
 	if err != nil {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -94,7 +94,7 @@ func (s *balanceTransactionService) CreateWithdraw(ctx context.Context, userID i
 
 	// Проверяем номер заказа на корректность
 	if !s.orderService.IsCorrectOrderNumber(clearOrderNumber) {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    "Invalid order number",
 			StatusCode: http.StatusUnprocessableEntity,
 		}
@@ -105,12 +105,12 @@ func (s *balanceTransactionService) CreateWithdraw(ctx context.Context, userID i
 		var insufficientBalanceErr *httpError.InsufficientBalanceError
 
 		if errors.As(err, &insufficientBalanceErr) {
-			return nil, httpError.CustomError{
+			return nil, httpError.HttpError{
 				Message:    err.Error(),
 				StatusCode: insufficientBalanceErr.StatusCode(),
 			}
 		}
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}

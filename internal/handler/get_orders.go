@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetOrdersHandler возвращает все заказы пользователя
+// GetOrdersHandler - получение списка загруженных номеров заказов
 func GetOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Log.Debug("Start GetOrdersHandler")

@@ -22,7 +22,7 @@ func updateOrderTask(ctx context.Context, srv service.OrderService) {
 		case <-ctx.Done():
 			return
 
-		// выполняем нужный нам код
+		// выполняем обновление заказов
 		default:
 			srv.UpdateOrderTask(ctx)
 		}
@@ -41,7 +41,7 @@ func resetOrderTask(ctx context.Context, srv service.OrderService) {
 		case <-ctx.Done():
 			return
 
-		// выполняем нужный нам код
+		// выполняем сброс статуса заказов
 		default:
 			_ = srv.ResetStuckProcessingOrders(ctx)
 		}
@@ -102,7 +102,7 @@ func main() {
 	defer cancelUpdateOrderTask()
 	logger.Log.Info("Start Update Order Task")
 
-	// Запускаем задание на сброс зависших заказов
+	// Запускаем очередь заданий на сброс зависших заказов
 	ctxResetOrderTask, cancelResetOrderTask := context.WithCancel(context.Background())
 	go resetOrderTask(ctxResetOrderTask, orderService)
 	defer cancelResetOrderTask()

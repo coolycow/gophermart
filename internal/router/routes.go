@@ -9,11 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// setupURLRoutes - настройка маршрутов для сервиса
 func setupURLRoutes(
 	r *gin.Engine,
 	cfg *config.Config,
 	repo repository.Repository,
 ) {
+	// Создаём все необходимые сервисы, которые передаются в обработчики
 	userService := service.NewUserService(cfg, repo)
 	orderService := service.NewOrderService(cfg, repo)
 	balanceTransactionService := service.NewBalanceTransactionService(cfg, repo)
@@ -37,7 +39,7 @@ func setupURLRoutes(
 	// Получение текущего баланса пользователя
 	authGroup.GET("/api/user/balance", handler.GetBalanceHandler(balanceTransactionService))
 
-	// Запрос на списание средств
+	// Запрос на списание средств (получает JSON)
 	authGroup.POST("/api/user/balance/withdraw", middleware.ContentTypeJSON(), handler.PostBalanceWithdrawHandler(balanceTransactionService))
 
 	// Получение информации о выводе средств

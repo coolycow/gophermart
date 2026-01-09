@@ -16,7 +16,7 @@ func ContentTypeJSON() gin.HandlerFunc {
 		if !strings.HasPrefix(contentType, "application/json") {
 			logger.Log.Debug("content type is not application/json")
 
-			_ = c.Error(error.CustomError{
+			_ = c.Error(error.HttpError{
 				Message:    "Content type not allowed",
 				StatusCode: http.StatusUnsupportedMediaType,
 			})

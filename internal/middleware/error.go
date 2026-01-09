@@ -14,7 +14,7 @@ func ErrorHandler() gin.HandlerFunc {
 
 		if len(c.Errors) > 0 {
 			for _, ginErr := range c.Errors {
-				var customErr error.CustomError
+				var customErr error.HttpError
 				if errors.As(ginErr.Err, &customErr) {
 					c.JSON(customErr.StatusCode, gin.H{"error": customErr.Message})
 					return

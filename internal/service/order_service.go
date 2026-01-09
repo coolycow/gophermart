@@ -64,7 +64,7 @@ func (s *orderService) IsCorrectOrderNumber(orderNumber string) bool {
 func (s *orderService) GetOrdersByUserID(ctx context.Context, userID int) ([]model.Order, error) {
 	orders, err := s.repo.GetOrdersByUserID(ctx, userID)
 	if err != nil {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -77,7 +77,7 @@ func (s *orderService) GetOrdersByUserID(ctx context.Context, userID int) ([]mod
 func (s *orderService) GetOrdersForUpdate(ctx context.Context) ([]model.Order, error) {
 	orders, err := s.repo.GetOrdersForUpdate(ctx)
 	if err != nil {
-		return nil, httpError.CustomError{
+		return nil, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -91,7 +91,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 	clearOrderNumber := s.SanitizeOrderNumber(orderNumber)
 
 	if !s.IsCorrectOrderNumber(clearOrderNumber) {
-		return nil, false, httpError.CustomError{
+		return nil, false, httpError.HttpError{
 			Message:    "Invalid order number",
 			StatusCode: http.StatusUnprocessableEntity,
 		}
@@ -99,7 +99,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	existedOrder, err := s.repo.GetOrderByNumber(ctx, clearOrderNumber)
 	if err != nil {
-		return nil, false, httpError.CustomError{
+		return nil, false, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -107,7 +107,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	if existedOrder != nil {
 		if existedOrder.UserID != userID {
-			return nil, false, httpError.CustomError{
+			return nil, false, httpError.HttpError{
 				Message:    "order already exists",
 				StatusCode: http.StatusConflict,
 			}
@@ -117,7 +117,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 
 	newOrder, err := s.repo.CreateOrder(ctx, userID, clearOrderNumber)
 	if err != nil {
-		return nil, false, httpError.CustomError{
+		return nil, false, httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -126,7 +126,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID int, orderNumber 
 	return newOrder, true, nil
 }
 
-// updateOrderWorker обновляет указанный заказ
+// updateOrderWorker обновляет указанный заказ (непосредственно сам Worker)
 func updateOrderWorker(ctx context.Context, srv *orderService, id int, orders <-chan model.Order) {
 	for order := range orders {
 		logger.Log.Debug(fmt.Sprintf("worker %d start update order %s by accrual", id, order.Number))
@@ -149,8 +149,9 @@ func updateOrderWorker(ctx context.Context, srv *orderService, id int, orders <-
 	}
 }
 
-// UpdateOrderTask Обновление заказов
+// UpdateOrderTask Обновление статуса и суммы баллов с использованием Worker Pool
 func (s *orderService) UpdateOrderTask(ctx context.Context) {
+	// Получаем заказы, которые требуется обновить
 	orders, err := s.repo.GetOrdersForUpdate(ctx)
 
 	if err != nil {
@@ -179,8 +180,7 @@ func (s *orderService) UpdateOrderTask(ctx context.Context) {
 		go updateOrderWorker(ctx, s, w, jobs)
 	}
 
-	// в канал задач отправляем какие-то данные
-	// задач у нас 5, а воркера 3, значит одновременно решается только 3 задачи
+	// В канал задач отправляем заказы
 	for j := 1; j <= numJobs; j++ {
 		jobs <- orders[j-1]
 	}
@@ -189,12 +189,12 @@ func (s *orderService) UpdateOrderTask(ctx context.Context) {
 	close(jobs)
 }
 
-// UpdateOrderByAccrual обновление статуса заказа и суммы начислений
+// UpdateOrderByAccrual обновление статуса заказа и суммы начислений на основе объекта модели Accrual
 func (s *orderService) UpdateOrderByAccrual(ctx context.Context, userID int, accrual model.Accrual) error {
 	return s.UpdateOrderStatusAndAccrual(ctx, userID, accrual.Order, accrual.Status, accrual.Accrual)
 }
 
-// UpdateOrderStatusAndAccrual обновление статуса заказа и суммы начислений
+// UpdateOrderStatusAndAccrual обновление статуса заказа и суммы начислений на основе отдельных полей
 func (s *orderService) UpdateOrderStatusAndAccrual(ctx context.Context, userID int, orderNumber string, status string, accrual float32) error {
 	return s.repo.UpdateOrderStatusAndAccrual(ctx, userID, orderNumber, status, accrual)
 }

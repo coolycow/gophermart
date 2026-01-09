@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetWithdrawalsHandler получение информации о выводе средств
+// GetWithdrawalsHandler - получение информации о выводе средств
 func GetWithdrawalsHandler(srv service.BalanceTransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Log.Debug("Start GetWithdrawalsHandler")
@@ -31,6 +31,7 @@ func GetWithdrawalsHandler(srv service.BalanceTransactionService) gin.HandlerFun
 		}
 
 		if len(balanceTransactions) == 0 {
+			logger.Log.Debug("No balance withdrawal found")
 			c.Status(http.StatusNoContent)
 			return
 		}

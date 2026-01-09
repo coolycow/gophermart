@@ -22,8 +22,8 @@ func Initialize(level string) error {
 
 	// устанавливаем уровень
 	cfg.Level = lvl
-	// создаём логгер на основе конфигурации
 
+	// создаём логгер на основе конфигурации
 	zl, err := cfg.Build()
 
 	if err != nil {

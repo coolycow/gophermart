@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// PostBalanceWithdrawHandler - запрос на списание средств
 func PostBalanceWithdrawHandler(srv service.BalanceTransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Log.Debug("Start PostBalanceWithdrawHandler")
@@ -31,7 +32,7 @@ func PostBalanceWithdrawHandler(srv service.BalanceTransactionService) gin.Handl
 
 		if err = dec.Decode(&req); err != nil {
 			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
-			_ = c.Error(httpError.CustomError{
+			_ = c.Error(httpError.HttpError{
 				Message:    "Cannot decode request JSON body",
 				StatusCode: http.StatusBadRequest,
 			})

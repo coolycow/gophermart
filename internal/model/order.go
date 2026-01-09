@@ -15,6 +15,7 @@ import (
 	Статусы INVALID и PROCESSED являются окончательными.
 */
 
+// Order - базовая модель заказа (как в БД)
 type Order struct {
 	ID        int        `json:"id"`
 	UserID    int        `json:"user_id"`
@@ -25,6 +26,7 @@ type Order struct {
 	UpdatedAt *time.Time `json:"updated_at"`
 }
 
+// OrderResponse - модель для списка заказов в ответе
 type OrderResponse struct {
 	ID        int        `json:"id"`
 	Number    string     `json:"number"`

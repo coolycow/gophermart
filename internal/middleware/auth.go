@@ -14,12 +14,12 @@ const (
 	UserIDKey ginKey = "userID"
 )
 
-// GetUserIDFromGinContext возвращает ID пользователя
+// GetUserIDFromGinContext возвращает ID пользователя из контекста
 func GetUserIDFromGinContext(c *gin.Context) (int, error) {
 	value, exists := c.Get(string(UserIDKey))
 
 	if !exists || value == nil {
-		return 0, httpError.CustomError{
+		return 0, httpError.HttpError{
 			Message:    "user id not found in context",
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -28,7 +28,7 @@ func GetUserIDFromGinContext(c *gin.Context) (int, error) {
 	userID, ok := value.(int)
 
 	if !ok {
-		return 0, httpError.CustomError{
+		return 0, httpError.HttpError{
 			Message:    "incorrect user id in context",
 			StatusCode: http.StatusInternalServerError,
 		}
@@ -37,7 +37,7 @@ func GetUserIDFromGinContext(c *gin.Context) (int, error) {
 	return userID, nil
 }
 
-// RequiredAuthMiddleware проверяет наличие авторизационной куки
+// RequiredAuthMiddleware проверяет наличие авторизационной куки и записывает ID пользователя в данные контекста
 func RequiredAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Request.Cookie("auth")
@@ -59,7 +59,7 @@ func RequiredAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 		user, err := userService.GetUserByID(c.Request.Context(), userID)
 
 		if err != nil {
-			_ = c.Error(httpError.CustomError{
+			_ = c.Error(httpError.HttpError{
 				Message:    "User with this ID does not exist",
 				StatusCode: http.StatusUnauthorized,
 			})
@@ -68,7 +68,7 @@ func RequiredAuthMiddleware(userService service.UserService) gin.HandlerFunc {
 		}
 
 		if user.DeletedAt != nil {
-			_ = c.Error(httpError.CustomError{
+			_ = c.Error(httpError.HttpError{
 				Message:    "User with this ID has already been deleted",
 				StatusCode: http.StatusUnauthorized,
 			})

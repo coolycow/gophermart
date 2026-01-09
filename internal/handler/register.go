@@ -12,9 +12,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// RegisterHandler - регистрация пользователя
 func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger.Log.Debug("Start register handler")
+		logger.Log.Debug("Start RegisterHandler")
 
 		// Получаем данные пользователя из запроса
 		var req model.UserRegister
@@ -22,7 +23,7 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 
 		if err := dec.Decode(&req); err != nil {
 			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
-			_ = c.Error(httpError.CustomError{
+			_ = c.Error(httpError.HttpError{
 				Message:    "Cannot decode request JSON body",
 				StatusCode: http.StatusBadRequest,
 			})

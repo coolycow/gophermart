@@ -13,12 +13,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// getTextPlainContent - получение данных из тела запроса в случае использования text/plain
 func getTextPlainContent(c *gin.Context) (string, error) {
 	// Читаем тело запроса
 	body, err := io.ReadAll(c.Request.Body)
 
 	if err != nil {
-		return "", httpError.CustomError{
+		return "", httpError.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		}
@@ -26,7 +27,7 @@ func getTextPlainContent(c *gin.Context) (string, error) {
 
 	// Проверяем, что не пришла пустота
 	if len(body) == 0 {
-		return "", httpError.CustomError{
+		return "", httpError.HttpError{
 			Message:    "Empty body",
 			StatusCode: http.StatusBadRequest,
 		}
@@ -36,7 +37,7 @@ func getTextPlainContent(c *gin.Context) (string, error) {
 	trimBody := strings.TrimSpace(string(body))
 
 	if trimBody == "" {
-		return "", httpError.CustomError{
+		return "", httpError.HttpError{
 			Message:    "Empty Content",
 			StatusCode: http.StatusBadRequest,
 		}

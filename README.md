@@ -24,17 +24,29 @@ git fetch template && git checkout template/master .github
 
 Затем добавьте полученные изменения в свой репозиторий.
 
-# Для запуска тестов с БД
+# Для запуска тестов
 ```
-$env:TEST_DATABASE_DSN="host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable"; go test -v ./...
+go test -v ./...
+```
+Для тестирования автоматически создаётся временная БД, содержащая все нужные таблицы. По завершению тестов БД удаляется.
+
+# Для запуска миграций
+```
+go run .\cmd\gophermart\main.go -d "host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable" -m
 ```
 
 # Для запуска проекта
 ```
 go run .\cmd\gophermart\main.go -a localhost:8080 -d "host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable" -l "info"
 ```
-
-# Для запуска миграций
-```
-go run .\cmd\gophermart\main.go -d "host=localhost port=5433 user=login password=password dbname=dbname sslmode=disable" -m
-```
+Поддерживаемые параметры:
+* `-a` - адрес и порт запуска сервиса, по умолчанию `http://127.0.0.1:8080`;
+* `-d` - адрес подключения к базе данных, по умолчанию не задано;
+* `-r` - адрес системы расчёта начислений, по умолчанию `http://127.0.0.1:8081`;
+* `-l` - уровень логирования (`debug`, `info`, `warn`, `error`);
+* `-s` - значение секретного ключа, по умолчанию `gophermat_secret_key`;
+* `-m` - установить все миграции, сам сервис запущен не будет;
+* `-o` - минимальная длина пароля (не менее 3), по умолчанию `3`;
+* `-p` - максимальная длина пароля (не более 255), по умолчанию `255`;
+* `-q` - минимальная длина логина (не менее 3), по умолчанию `3`;
+* `-t` - максимальная длина логина (не более 255), по умолчанию `255`.

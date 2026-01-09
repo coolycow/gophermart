@@ -11,9 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// LoginHandler - аутентификация пользователя
 func LoginHandler(srv service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger.Log.Debug("Start login handler")
+		logger.Log.Debug("Start LoginHandler")
 
 		// Получаем данные пользователя из запроса
 		var req model.UserLogin

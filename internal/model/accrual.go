@@ -10,6 +10,7 @@ package model
 	Статусы INVALID и PROCESSED являются окончательными.
 */
 
+// Accrual - модель для взаимодействия с системой расчёта начислений баллов лояльности
 type Accrual struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`
