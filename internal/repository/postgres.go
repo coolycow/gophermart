@@ -377,6 +377,10 @@ func (r *PostgresRepository) GetOrdersForUpdate(ctx context.Context) ([]model.Or
 		orderIDs = append(orderIDs, ID)
 	}
 
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
 	// Если есть заказы, обновляем их статус на PROCESSING
 	if len(orderIDs) > 0 {
 		placeholders := make([]string, len(orderIDs))

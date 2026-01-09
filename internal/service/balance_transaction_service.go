@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/coolycow/gophermart/internal/config"
-	balanceError "github.com/coolycow/gophermart/internal/error"
 	httpError "github.com/coolycow/gophermart/internal/error"
 	"github.com/coolycow/gophermart/internal/model"
 	"github.com/coolycow/gophermart/internal/repository"
@@ -107,7 +106,7 @@ func (s *balanceTransactionService) CreateWithdraw(ctx context.Context, userID i
 
 	balance, err := s.repo.CreateWithdraw(ctx, userID, clearOrderNumber, amount)
 	if err != nil {
-		var insufficientBalanceErr *balanceError.InsufficientBalanceError
+		var insufficientBalanceErr *httpError.InsufficientBalanceError
 
 		if errors.As(err, &insufficientBalanceErr) {
 			return nil, httpError.CustomError{
