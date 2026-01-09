@@ -50,28 +50,12 @@ func PostOrdersHandler(orderService service.OrderService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Log.Debug("Start post orders handler")
 
-		// Читаем тело запроса
-		content, err := getTextPlainContent(c)
-
+		// Читаем тело запроса и получаем из него номер заказа
+		orderNumber, err := getTextPlainContent(c)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
-
-		// Получаем номер заказа
-		orderNumber := orderService.ClearOrderNumber(content)
-		logger.Log.Debug("Clear order number: " + orderNumber)
-
-		// Проверяем корректность номера заказа по алгоритму Луна
-		if !orderService.IsCorrectOrderNumber(orderNumber) {
-			logger.Log.Debug("Order number " + orderNumber + " is not correct")
-			_ = c.Error(httpError.CustomError{
-				Message:    "Invalid order number",
-				StatusCode: http.StatusUnprocessableEntity,
-			})
-			return
-		}
-		logger.Log.Debug("Order number " + orderNumber + " is correct")
 
 		// Получаем ID пользователя из полученных кук
 		userID, err := middleware.GetUserIDFromGinContext(c)

@@ -198,7 +198,7 @@ func getDefaultRunAddress() string {
 
 // getDefaultDatabaseURI Стандартные настройки подключения к БД
 func getDefaultAccrualSystemAddress() string {
-	return "http://127.0.0.1:8080"
+	return "http://127.0.0.1:8081"
 }
 
 // getDefaultDatabaseURI Стандартные настройки подключения к БД

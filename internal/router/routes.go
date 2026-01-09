@@ -16,6 +16,7 @@ func setupURLRoutes(
 ) {
 	userService := service.NewUserService(cfg, repo)
 	orderService := service.NewOrderService(cfg, repo)
+	balanceTransactionService := service.NewBalanceTransactionService(cfg, repo)
 
 	// Регистрация пользователя (получает JSON)
 	r.POST("/api/user/register", middleware.ContentTypeJSON(), handler.RegisterHandler(userService))
@@ -34,14 +35,11 @@ func setupURLRoutes(
 	authGroup.GET("/api/user/orders", handler.GetOrdersHandler(orderService))
 
 	// Получение текущего баланса пользователя
-	authGroup.GET("/api/user/balance", handler.GetBalanceHandler())
+	authGroup.GET("/api/user/balance", handler.GetBalanceHandler(balanceTransactionService))
 
 	// Запрос на списание средств
-	authGroup.POST("/api/user/balance/withdraw", handler.PostBalanceWithdrawHandler())
+	authGroup.POST("/api/user/balance/withdraw", middleware.ContentTypeJSON(), handler.PostBalanceWithdrawHandler(balanceTransactionService))
 
 	// Получение информации о выводе средств
-	authGroup.GET("/api/user/withdrawals", handler.GetWithdrawalsHandler())
-
-	// Получение информации о расчёте начислений баллов лояльности
-	authGroup.GET("/api/orders/{number}", handler.GetOrderInfoHandler())
+	authGroup.GET("/api/user/withdrawals", handler.GetWithdrawalsHandler(balanceTransactionService))
 }

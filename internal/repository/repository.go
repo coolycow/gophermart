@@ -24,5 +24,13 @@ type Repository interface {
 	GetOrdersForUpdate(ctx context.Context) ([]model.Order, error)
 
 	CreateOrder(ctx context.Context, userID int, orderNumber string) (*model.Order, error)
-	UpdateOrderStatusAndAccrual(ctx context.Context, orderNumber string, status string, accrual float32) error
+
+	UpdateOrderStatusAndAccrual(ctx context.Context, userID int, orderNumber string, status string, accrual float32) error
+	ResetStuckProcessingOrders(ctx context.Context) error
+
+	GetBalanceByUserID(ctx context.Context, userID int) (*model.BalanceResponse, error)
+	GetWithdrawalsByUserID(ctx context.Context, userID int) ([]model.BalanceTransaction, error)
+
+	CreateAccrual(ctx context.Context, userID int, orderNumber string, amount float32) (*model.BalanceTransaction, error)
+	CreateWithdraw(ctx context.Context, userID int, orderNumber string, amount float32) (*model.BalanceTransaction, error)
 }

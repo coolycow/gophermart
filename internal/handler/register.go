@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	httpError "github.com/coolycow/gophermart/internal/error"
 	"github.com/coolycow/gophermart/internal/logger"
 	"github.com/coolycow/gophermart/internal/model"
 	"github.com/coolycow/gophermart/internal/service"
@@ -21,7 +22,10 @@ func RegisterHandler(srv service.UserService) gin.HandlerFunc {
 
 		if err := dec.Decode(&req); err != nil {
 			logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
-			_ = c.Error(err)
+			_ = c.Error(httpError.CustomError{
+				Message:    "Cannot decode request JSON body",
+				StatusCode: http.StatusBadRequest,
+			})
 			return
 		}
 
