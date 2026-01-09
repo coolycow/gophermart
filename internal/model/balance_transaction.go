@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"math"
 	"time"
 )
 
@@ -45,11 +46,13 @@ func (o WithdrawalResponse) MarshalJSON() ([]byte, error) {
 
 	aliasValue := struct {
 		WithdrawalResponseAlias
-		ProcessedAt string `json:"processed_at"`
+		Sum         float32 `json:"sum"`
+		ProcessedAt string  `json:"processed_at"`
 	}{
 		// встраиваем значение всех полей изначального объекта (embedding)
 		WithdrawalResponseAlias: WithdrawalResponseAlias(o),
 		// задаём значение для переопределённого поля
+		Sum:         float32(math.Abs(float64(o.Sum))),
 		ProcessedAt: o.ProcessedAt.Format(time.RFC3339),
 	}
 

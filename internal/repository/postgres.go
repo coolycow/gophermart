@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -608,7 +609,9 @@ func (r *PostgresRepository) CreateWithdraw(ctx context.Context, userID int, ord
 		return nil, err
 	}
 
-	if current < amount {
+	absAmount := float32(math.Abs(float64(amount)))
+
+	if current < absAmount {
 		_ = tx.Rollback()
 		return nil, &balanceError.InsufficientBalanceError{Message: "insufficient balance"}
 	}
@@ -616,7 +619,7 @@ func (r *PostgresRepository) CreateWithdraw(ctx context.Context, userID int, ord
 	row = tx.QueryRowContext(ctx, `
 		INSERT INTO balance_transactions (user_id, order_number, amount) 
 		VALUES ($1, $2, $3) 
-		RETURNING id, created_at, updated_at`, userID, orderNumber, amount)
+		RETURNING id, created_at, updated_at`, userID, orderNumber, -absAmount)
 
 	var ID int
 	var createdAt, updatedAt *time.Time
@@ -638,7 +641,7 @@ func (r *PostgresRepository) CreateWithdraw(ctx context.Context, userID int, ord
 		ID:          ID,
 		UserID:      userID,
 		OrderNumber: orderNumber,
-		Amount:      amount,
+		Amount:      -absAmount,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 	}, nil

@@ -100,10 +100,6 @@ func (s *balanceTransactionService) CreateWithdraw(ctx context.Context, userID i
 		}
 	}
 
-	if amount > 0 {
-		amount = -amount
-	}
-
 	balance, err := s.repo.CreateWithdraw(ctx, userID, clearOrderNumber, amount)
 	if err != nil {
 		var insufficientBalanceErr *httpError.InsufficientBalanceError
